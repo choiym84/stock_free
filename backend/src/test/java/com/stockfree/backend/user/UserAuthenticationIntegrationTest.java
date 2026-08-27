@@ -1,6 +1,7 @@
 package com.stockfree.backend.user;
 
 import com.stockfree.backend.TestcontainersConfiguration;
+import com.stockfree.backend.security.AuthenticatedUser;
 import com.stockfree.backend.user.repository.UserRepository;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
@@ -11,6 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -78,6 +81,11 @@ class UserAuthenticationIntegrationTest {
 
         MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
         assertThat(session).isNotNull();
+        SecurityContext securityContext = (SecurityContext) session.getAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY
+        );
+        AuthenticatedUser sessionUser = (AuthenticatedUser) securityContext.getAuthentication().getPrincipal();
+        assertThat(sessionUser.getPassword()).isNull();
 
         mockMvc.perform(get("/api/v1/users/me").session(session))
                 .andExpect(status().isOk())

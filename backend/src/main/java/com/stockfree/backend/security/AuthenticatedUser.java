@@ -3,23 +3,46 @@ package com.stockfree.backend.security;
 import com.stockfree.backend.user.domain.User;
 import com.stockfree.backend.user.domain.UserRole;
 import com.stockfree.backend.user.domain.UserStatus;
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serial;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
-public record AuthenticatedUser(
-        Long id,
-        String email,
-        String nickname,
-        String passwordHash,
-        UserRole role,
-        UserStatus status,
-        Instant createdAt
-) implements UserDetails {
+public final class AuthenticatedUser implements UserDetails, CredentialsContainer {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private final Long id;
+    private final String email;
+    private final String nickname;
+    private String passwordHash;
+    private final UserRole role;
+    private final UserStatus status;
+    private final Instant createdAt;
+
+    private AuthenticatedUser(
+            Long id,
+            String email,
+            String nickname,
+            String passwordHash,
+            UserRole role,
+            UserStatus status,
+            Instant createdAt
+    ) {
+        this.id = id;
+        this.email = email;
+        this.nickname = nickname;
+        this.passwordHash = passwordHash;
+        this.role = role;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
 
     public static AuthenticatedUser from(User user) {
         return new AuthenticatedUser(
@@ -31,6 +54,30 @@ public record AuthenticatedUser(
                 user.getStatus(),
                 user.getCreatedAt()
         );
+    }
+
+    public Long id() {
+        return id;
+    }
+
+    public String email() {
+        return email;
+    }
+
+    public String nickname() {
+        return nickname;
+    }
+
+    public UserRole role() {
+        return role;
+    }
+
+    public UserStatus status() {
+        return status;
+    }
+
+    public Instant createdAt() {
+        return createdAt;
     }
 
     @Override
@@ -56,5 +103,22 @@ public record AuthenticatedUser(
     @Override
     public boolean isEnabled() {
         return status == UserStatus.ACTIVE;
+    }
+
+    @Override
+    public void eraseCredentials() {
+        passwordHash = null;
+    }
+
+    @Override
+    public String toString() {
+        return "AuthenticatedUser[" +
+                "id=" + id +
+                ", email=" + email +
+                ", nickname=" + nickname +
+                ", role=" + role +
+                ", status=" + status +
+                ", createdAt=" + createdAt +
+                ']';
     }
 }
