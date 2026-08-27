@@ -72,4 +72,22 @@ public class User {
     public static String normalizeEmail(String email) {
         return Objects.requireNonNull(email).trim().toLowerCase(Locale.ROOT);
     }
+
+    public boolean changeRole(UserRole role) {
+        UserRole newRole = Objects.requireNonNull(role);
+        if (this.role == newRole) {
+            return false;
+        }
+        this.role = newRole;
+        return true;
+    }
+
+    public boolean changeStatus(UserStatus status) {
+        UserStatus newStatus = Objects.requireNonNull(status);
+        if (this.status == newStatus) {
+            return false;
+        }
+        this.status = newStatus;
+        return true;
+    }
 }

@@ -2,7 +2,9 @@ package com.stockfree.backend.user;
 
 import com.stockfree.backend.TestcontainersConfiguration;
 import com.stockfree.backend.security.AuthenticatedUser;
+import com.stockfree.backend.user.domain.UserStatus;
 import com.stockfree.backend.user.repository.UserRepository;
+import com.stockfree.backend.user.service.UserService;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +39,9 @@ class UserAuthenticationIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserService userService;
 
     @BeforeEach
     void deleteUsers() {
@@ -187,6 +192,40 @@ class UserAuthenticationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
                 .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+    }
+
+    @Test
+    void authenticatedSession_afterUserStatusChanges_shouldBeRejected() throws Exception {
+        CsrfCredentials csrf = issueCsrf();
+        mockMvc.perform(withCsrf(post("/api/v1/auth/register"), csrf)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "status@example.com",
+                                  "nickname": "status_user",
+                                  "password": "password123"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        MvcResult loginResult = mockMvc.perform(withCsrf(post("/api/v1/auth/login"), csrf)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "status@example.com",
+                                  "password": "password123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+        Long userId = userRepository.findByEmail("status@example.com").orElseThrow().getId();
+
+        userService.changeStatus(userId, UserStatus.LOCKED);
+
+        mockMvc.perform(get("/api/v1/users/me").session(session))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("SESSION_EXPIRED"));
     }
 
     private CsrfCredentials issueCsrf() throws Exception {

@@ -4,10 +4,14 @@ import com.stockfree.backend.common.exception.DuplicateUserAttributeException;
 import com.stockfree.backend.common.exception.InvalidPasswordException;
 import com.stockfree.backend.common.exception.UserNotFoundException;
 import com.stockfree.backend.user.domain.User;
+import com.stockfree.backend.user.domain.UserRole;
+import com.stockfree.backend.user.domain.UserStatus;
 import com.stockfree.backend.user.dto.LoginRequest;
 import com.stockfree.backend.user.dto.RegisterUserRequest;
+import com.stockfree.backend.user.event.UserAccessChangedEvent;
 import com.stockfree.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,6 +33,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public User register(RegisterUserRequest request) {
@@ -69,5 +74,23 @@ public class UserService {
 
     public User getById(Long id) {
         return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+    }
+
+    @Transactional
+    public User changeRole(Long id, UserRole role) {
+        User user = getById(id);
+        if (user.changeRole(role)) {
+            eventPublisher.publishEvent(new UserAccessChangedEvent(id));
+        }
+        return user;
+    }
+
+    @Transactional
+    public User changeStatus(Long id, UserStatus status) {
+        User user = getById(id);
+        if (user.changeStatus(status)) {
+            eventPublisher.publishEvent(new UserAccessChangedEvent(id));
+        }
+        return user;
     }
 }
