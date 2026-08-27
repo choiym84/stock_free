@@ -1,5 +1,10 @@
 # Stock Free Backend
 
+## User session authentication
+
+The user API uses a server-side session stored in the `JSESSIONID` cookie. See
+[`docs/user-session-auth.md`](docs/user-session-auth.md) for the endpoints and browser CSRF flow.
+
 ## Local PostgreSQL with Docker
 
 The local database is defined in `compose.yaml`. Docker Compose gives every developer the same
