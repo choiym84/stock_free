@@ -11,6 +11,7 @@ import com.stockfree.backend.user.dto.RegisterUserRequest;
 import com.stockfree.backend.user.event.UserAccessChangedEvent;
 import com.stockfree.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -54,10 +55,7 @@ public class UserService {
         try {
             return userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException exception) {
-            throw new DuplicateUserAttributeException(
-                    "USER_ALREADY_EXISTS",
-                    "Email or nickname is already registered"
-            );
+            throw translateRegistrationConflict(exception);
         }
     }
 
@@ -92,5 +90,26 @@ public class UserService {
             eventPublisher.publishEvent(new UserAccessChangedEvent(id));
         }
         return user;
+    }
+
+    private RuntimeException translateRegistrationConflict(DataIntegrityViolationException exception) {
+        Throwable cause = exception;
+        while (cause != null) {
+            if (cause instanceof ConstraintViolationException constraintViolation) {
+                return switch (constraintViolation.getConstraintName()) {
+                    case "uk_users_email" -> new DuplicateUserAttributeException(
+                            "EMAIL_ALREADY_EXISTS",
+                            "Email is already registered"
+                    );
+                    case "uk_users_nickname" -> new DuplicateUserAttributeException(
+                            "NICKNAME_ALREADY_EXISTS",
+                            "Nickname is already registered"
+                    );
+                    default -> exception;
+                };
+            }
+            cause = cause.getCause();
+        }
+        return exception;
     }
 }
