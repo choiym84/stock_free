@@ -1,5 +1,6 @@
 package com.stockfree.backend.user.domain;
 
+import com.stockfree.backend.common.exception.InvalidUserStatusTransitionException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -86,6 +87,9 @@ public class User {
         UserStatus newStatus = Objects.requireNonNull(status);
         if (this.status == newStatus) {
             return false;
+        }
+        if (this.status == UserStatus.WITHDRAWN) {
+            throw new InvalidUserStatusTransitionException();
         }
         this.status = newStatus;
         return true;

@@ -73,6 +73,20 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("USER_NOT_FOUND", exception.getMessage()));
     }
 
+    @ExceptionHandler(SelfAccessChangeNotAllowedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSelfAccessChange(SelfAccessChangeNotAllowedException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("SELF_ACCESS_CHANGE_NOT_ALLOWED", exception.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidUserStatusTransitionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidStatusTransition(
+            InvalidUserStatusTransitionException exception
+    ) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("INVALID_USER_STATUS_TRANSITION", exception.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnexpectedException(Exception exception) {
         log.error("Unhandled exception", exception);

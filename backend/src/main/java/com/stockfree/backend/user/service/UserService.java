@@ -4,6 +4,7 @@ import com.stockfree.backend.common.exception.DuplicateUserAttributeException;
 import com.stockfree.backend.common.exception.InvalidPasswordException;
 import com.stockfree.backend.common.exception.InvalidCurrentPasswordException;
 import com.stockfree.backend.common.exception.LoginRateLimitExceededException;
+import com.stockfree.backend.common.exception.SelfAccessChangeNotAllowedException;
 import com.stockfree.backend.common.exception.UserNotFoundException;
 import com.stockfree.backend.security.AuthenticatedUser;
 import com.stockfree.backend.security.AuthenticationAttemptService;
@@ -28,6 +29,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,6 +103,22 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
     }
 
+    public Page<User> getAll(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    @Transactional
+    public User changeRoleByAdmin(Long administratorId, Long userId, UserRole role) {
+        validateDifferentUser(administratorId, userId);
+        return changeRole(userId, role);
+    }
+
+    @Transactional
+    public User changeStatusByAdmin(Long administratorId, Long userId, UserStatus status) {
+        validateDifferentUser(administratorId, userId);
+        return changeStatus(userId, status);
+    }
+
     @Transactional
     public User changeRole(Long id, UserRole role) {
         User user = getById(id);
@@ -170,6 +189,12 @@ public class UserService {
     private void validatePasswordLength(String password) {
         if (password.getBytes(StandardCharsets.UTF_8).length > BCRYPT_MAX_PASSWORD_BYTES) {
             throw new InvalidPasswordException("Password must not exceed 72 bytes");
+        }
+    }
+
+    private void validateDifferentUser(Long administratorId, Long userId) {
+        if (administratorId.equals(userId)) {
+            throw new SelfAccessChangeNotAllowedException();
         }
     }
 
