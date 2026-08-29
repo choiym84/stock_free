@@ -5,9 +5,13 @@ import com.stockfree.backend.security.AuthenticatedUser;
 import com.stockfree.backend.security.AuthenticationClient;
 import com.stockfree.backend.security.SessionAuthenticationHandler;
 import com.stockfree.backend.user.dto.CsrfTokenResponse;
+import com.stockfree.backend.user.dto.AccountTokenRequest;
+import com.stockfree.backend.user.dto.EmailAddressRequest;
 import com.stockfree.backend.user.dto.LoginRequest;
 import com.stockfree.backend.user.dto.RegisterUserRequest;
+import com.stockfree.backend.user.dto.ResetPasswordRequest;
 import com.stockfree.backend.user.dto.UserResponse;
+import com.stockfree.backend.user.service.AccountRecoveryService;
 import com.stockfree.backend.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,6 +34,7 @@ public class AuthController {
 
     private final UserService userService;
     private final SessionAuthenticationHandler sessionAuthenticationHandler;
+    private final AccountRecoveryService accountRecoveryService;
 
     @GetMapping("/csrf")
     public ApiResponse<CsrfTokenResponse> csrf(CsrfToken csrfToken) {
@@ -65,6 +70,38 @@ public class AuthController {
             HttpServletResponse response
     ) {
         sessionAuthenticationHandler.logout(authentication, request, response);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/email-verifications")
+    public ResponseEntity<Void> resendEmailVerification(
+            @Valid @RequestBody EmailAddressRequest request
+    ) {
+        accountRecoveryService.resendEmailVerification(request.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/email-verifications/confirm")
+    public ResponseEntity<Void> verifyEmail(
+            @Valid @RequestBody AccountTokenRequest request
+    ) {
+        accountRecoveryService.verifyEmail(request.token());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/password-resets")
+    public ResponseEntity<Void> requestPasswordReset(
+            @Valid @RequestBody EmailAddressRequest request
+    ) {
+        accountRecoveryService.requestPasswordReset(request.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/password-resets/confirm")
+    public ResponseEntity<Void> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request
+    ) {
+        accountRecoveryService.resetPassword(request.token(), request.newPassword());
         return ResponseEntity.noContent().build();
     }
 }

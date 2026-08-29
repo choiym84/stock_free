@@ -46,6 +46,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("INVALID_CURRENT_PASSWORD", exception.getMessage()));
     }
 
+    @ExceptionHandler(InvalidAccountTokenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidAccountToken(InvalidAccountTokenException exception) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error("INVALID_OR_EXPIRED_TOKEN", exception.getMessage()));
+    }
+
     @ExceptionHandler(DuplicateUserAttributeException.class)
     public ResponseEntity<ApiResponse<Void>> handleDuplicateUserAttribute(
             DuplicateUserAttributeException exception

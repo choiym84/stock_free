@@ -10,6 +10,7 @@ public record UserResponse(
         String nickname,
         String role,
         String status,
+        boolean emailVerified,
         Instant createdAt
 ) {
 
@@ -19,6 +20,7 @@ public record UserResponse(
                 user.getNickname(),
                 user.getRole().name(),
                 user.getStatus().name(),
+                user.isEmailVerified(),
                 user.getCreatedAt()
         );
     }
@@ -29,6 +31,7 @@ public record UserResponse(
                 user.nickname(),
                 user.role().name(),
                 user.status().name(),
+                user.emailVerified(),
                 user.createdAt()
         );
     }

@@ -24,6 +24,8 @@ public final class AuthenticatedUser implements UserDetails, CredentialsContaine
     private String passwordHash;
     private final UserRole role;
     private final UserStatus status;
+    private final boolean emailVerified;
+    private final boolean emailVerificationRequired;
     private final Instant createdAt;
 
     private AuthenticatedUser(
@@ -33,6 +35,8 @@ public final class AuthenticatedUser implements UserDetails, CredentialsContaine
             String passwordHash,
             UserRole role,
             UserStatus status,
+            boolean emailVerified,
+            boolean emailVerificationRequired,
             Instant createdAt
     ) {
         this.id = id;
@@ -41,10 +45,16 @@ public final class AuthenticatedUser implements UserDetails, CredentialsContaine
         this.passwordHash = passwordHash;
         this.role = role;
         this.status = status;
+        this.emailVerified = emailVerified;
+        this.emailVerificationRequired = emailVerificationRequired;
         this.createdAt = createdAt;
     }
 
     public static AuthenticatedUser from(User user) {
+        return from(user, false);
+    }
+
+    public static AuthenticatedUser from(User user, boolean emailVerificationRequired) {
         return new AuthenticatedUser(
                 user.getId(),
                 user.getEmail(),
@@ -52,6 +62,8 @@ public final class AuthenticatedUser implements UserDetails, CredentialsContaine
                 user.getPasswordHash(),
                 user.getRole(),
                 user.getStatus(),
+                user.isEmailVerified(),
+                emailVerificationRequired,
                 user.getCreatedAt()
         );
     }
@@ -74,6 +86,10 @@ public final class AuthenticatedUser implements UserDetails, CredentialsContaine
 
     public UserStatus status() {
         return status;
+    }
+
+    public boolean emailVerified() {
+        return emailVerified;
     }
 
     public Instant createdAt() {
@@ -102,7 +118,7 @@ public final class AuthenticatedUser implements UserDetails, CredentialsContaine
 
     @Override
     public boolean isEnabled() {
-        return status == UserStatus.ACTIVE;
+        return status == UserStatus.ACTIVE && (!emailVerificationRequired || emailVerified);
     }
 
     @Override
@@ -118,6 +134,7 @@ public final class AuthenticatedUser implements UserDetails, CredentialsContaine
                 ", nickname=" + nickname +
                 ", role=" + role +
                 ", status=" + status +
+                ", emailVerified=" + emailVerified +
                 ", createdAt=" + createdAt +
                 ']';
     }

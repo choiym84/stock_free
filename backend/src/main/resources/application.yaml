@@ -16,6 +16,11 @@ spring:
       pageable:
         default-page-size: 20
         max-page-size: 100
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
 server:
   servlet:
     session:
@@ -31,3 +36,11 @@ app:
       max-failures-per-email: ${LOGIN_MAX_FAILURES_PER_EMAIL:5}
       max-failures-per-ip: ${LOGIN_MAX_FAILURES_PER_IP:20}
       window: ${LOGIN_FAILURE_WINDOW:15m}
+    require-email-verification: ${REQUIRE_EMAIL_VERIFICATION:true}
+    account-tokens:
+      email-verification-ttl: ${EMAIL_VERIFICATION_TTL:24h}
+      password-reset-ttl: ${PASSWORD_RESET_TTL:30m}
+  notification:
+    delivery: ${ACCOUNT_NOTIFICATION_DELIVERY:console}
+    base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
+    from: ${MAIL_FROM:no-reply@stockfree.local}

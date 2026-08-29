@@ -33,7 +33,9 @@ class AuthenticationAttemptServiceTest {
     void setUp() {
         var properties = new SecurityProperties(
                 List.of("http://localhost:5173"),
-                new SecurityProperties.LoginThrottle(5, 20, Duration.ofMinutes(15))
+                new SecurityProperties.LoginThrottle(5, 20, Duration.ofMinutes(15)),
+                false,
+                new SecurityProperties.AccountTokens(Duration.ofHours(24), Duration.ofMinutes(30))
         );
         authenticationAttemptService = new AuthenticationAttemptService(
                 authenticationEventRepository,

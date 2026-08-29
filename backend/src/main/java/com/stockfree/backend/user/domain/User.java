@@ -48,6 +48,9 @@ public class User {
     @Column(nullable = false, length = 20)
     private UserStatus status;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified;
+
     @Version
     @Column(nullable = false)
     private Long version;
@@ -67,6 +70,7 @@ public class User {
         user.passwordHash = Objects.requireNonNull(passwordHash);
         user.role = UserRole.USER;
         user.status = UserStatus.ACTIVE;
+        user.emailVerified = false;
         return user;
     }
 
@@ -106,5 +110,9 @@ public class User {
 
     public void changePassword(String passwordHash) {
         this.passwordHash = Objects.requireNonNull(passwordHash);
+    }
+
+    public void verifyEmail() {
+        emailVerified = true;
     }
 }
