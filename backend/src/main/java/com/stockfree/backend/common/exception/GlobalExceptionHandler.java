@@ -38,6 +38,14 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("INVALID_PASSWORD", exception.getMessage()));
     }
 
+    @ExceptionHandler(InvalidCurrentPasswordException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCurrentPassword(
+            InvalidCurrentPasswordException exception
+    ) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error("INVALID_CURRENT_PASSWORD", exception.getMessage()));
+    }
+
     @ExceptionHandler(DuplicateUserAttributeException.class)
     public ResponseEntity<ApiResponse<Void>> handleDuplicateUserAttribute(
             DuplicateUserAttributeException exception

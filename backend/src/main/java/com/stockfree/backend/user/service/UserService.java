@@ -2,6 +2,7 @@ package com.stockfree.backend.user.service;
 
 import com.stockfree.backend.common.exception.DuplicateUserAttributeException;
 import com.stockfree.backend.common.exception.InvalidPasswordException;
+import com.stockfree.backend.common.exception.InvalidCurrentPasswordException;
 import com.stockfree.backend.common.exception.LoginRateLimitExceededException;
 import com.stockfree.backend.common.exception.UserNotFoundException;
 import com.stockfree.backend.security.AuthenticatedUser;
@@ -12,6 +13,9 @@ import com.stockfree.backend.user.domain.UserRole;
 import com.stockfree.backend.user.domain.UserStatus;
 import com.stockfree.backend.user.dto.LoginRequest;
 import com.stockfree.backend.user.dto.RegisterUserRequest;
+import com.stockfree.backend.user.dto.UpdateNicknameRequest;
+import com.stockfree.backend.user.dto.ChangePasswordRequest;
+import com.stockfree.backend.user.dto.WithdrawUserRequest;
 import com.stockfree.backend.user.event.UserAccessChangedEvent;
 import com.stockfree.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +65,7 @@ public class UserService {
         try {
             return userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException exception) {
-            throw translateRegistrationConflict(exception);
+            throw translateUserConstraintViolation(exception);
         }
     }
 
@@ -114,7 +118,62 @@ public class UserService {
         return user;
     }
 
-    private RuntimeException translateRegistrationConflict(DataIntegrityViolationException exception) {
+    @Transactional
+    public User updateNickname(Long id, UpdateNicknameRequest request) {
+        User user = getById(id);
+        String nickname = request.nickname().trim();
+        if (user.getNickname().equals(nickname)) {
+            return user;
+        }
+        if (userRepository.existsByNickname(nickname)) {
+            throw new DuplicateUserAttributeException(
+                    "NICKNAME_ALREADY_EXISTS",
+                    "Nickname is already registered"
+            );
+        }
+        user.changeNickname(nickname);
+        try {
+            return userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException exception) {
+            throw translateUserConstraintViolation(exception);
+        }
+    }
+
+    @Transactional
+    public void changePassword(Long id, ChangePasswordRequest request) {
+        User user = getById(id);
+        validateCurrentPassword(user, request.currentPassword());
+        validatePasswordLength(request.newPassword());
+        if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
+            throw new InvalidPasswordException("New password must be different from the current password");
+        }
+        user.changePassword(passwordEncoder.encode(request.newPassword()));
+        eventPublisher.publishEvent(new UserAccessChangedEvent(id));
+    }
+
+    @Transactional
+    public void withdraw(Long id, WithdrawUserRequest request) {
+        User user = getById(id);
+        validateCurrentPassword(user, request.currentPassword());
+        if (user.changeStatus(UserStatus.WITHDRAWN)) {
+            eventPublisher.publishEvent(new UserAccessChangedEvent(id));
+        }
+    }
+
+    private void validateCurrentPassword(User user, String currentPassword) {
+        validatePasswordLength(currentPassword);
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new InvalidCurrentPasswordException();
+        }
+    }
+
+    private void validatePasswordLength(String password) {
+        if (password.getBytes(StandardCharsets.UTF_8).length > BCRYPT_MAX_PASSWORD_BYTES) {
+            throw new InvalidPasswordException("Password must not exceed 72 bytes");
+        }
+    }
+
+    private RuntimeException translateUserConstraintViolation(DataIntegrityViolationException exception) {
         Throwable cause = exception;
         while (cause != null) {
             if (cause instanceof ConstraintViolationException constraintViolation) {

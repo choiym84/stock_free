@@ -90,4 +90,17 @@ public class User {
         this.status = newStatus;
         return true;
     }
+
+    public boolean changeNickname(String nickname) {
+        String newNickname = Objects.requireNonNull(nickname).trim();
+        if (this.nickname.equals(newNickname)) {
+            return false;
+        }
+        this.nickname = newNickname;
+        return true;
+    }
+
+    public void changePassword(String passwordHash) {
+        this.passwordHash = Objects.requireNonNull(passwordHash);
+    }
 }
