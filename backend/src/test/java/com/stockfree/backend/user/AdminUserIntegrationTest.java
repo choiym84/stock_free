@@ -57,6 +57,10 @@ class AdminUserIntegrationTest {
         userService.changeRole(adminId, UserRole.ADMIN);
         MockHttpSession adminSession = login(csrf, "admin@example.com");
 
+        mockMvc.perform(get("/api/v1/admin/authentication-events").session(adminSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].attemptedEmail").value("admin@example.com"));
+
         register(csrf, "target@example.com", "target_user");
         Long targetId = userRepository.findByEmail("target@example.com").orElseThrow().getId();
         MockHttpSession targetSession = login(csrf, "target@example.com");

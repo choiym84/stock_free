@@ -2,12 +2,14 @@ package com.stockfree.backend.security;
 
 import com.stockfree.backend.user.event.UserAccessChangedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
+@Profile("!redis-session")
 @RequiredArgsConstructor
 public class UserSessionRevoker {
 

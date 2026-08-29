@@ -35,7 +35,7 @@ class UserSessionRevokerTest {
         when(sessionRegistry.getAllPrincipals()).thenReturn(List.of(matchingUser, otherUser));
         when(sessionRegistry.getAllSessions(matchingUser, false)).thenReturn(List.of(sessionInformation));
 
-        userSessionRevoker.revokeAfterAccessChange(new UserAccessChangedEvent(1L));
+        userSessionRevoker.revokeAfterAccessChange(new UserAccessChangedEvent(1L, "matching@example.com"));
 
         verify(sessionInformation).expireNow();
         verify(sessionRegistry, never()).getAllSessions(otherUser, false);

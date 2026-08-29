@@ -22,6 +22,7 @@ spring:
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
 server:
+  forward-headers-strategy: framework
   servlet:
     session:
       timeout: 30m
@@ -44,3 +45,8 @@ app:
     delivery: ${ACCOUNT_NOTIFICATION_DELIVERY:console}
     base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
     from: ${MAIL_FROM:no-reply@stockfree.local}
+  redis-session:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    ssl: ${REDIS_SSL:false}

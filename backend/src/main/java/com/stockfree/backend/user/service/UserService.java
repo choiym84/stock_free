@@ -126,7 +126,7 @@ public class UserService {
     public User changeRole(Long id, UserRole role) {
         User user = getById(id);
         if (user.changeRole(role)) {
-            eventPublisher.publishEvent(new UserAccessChangedEvent(id));
+            eventPublisher.publishEvent(new UserAccessChangedEvent(id, user.getEmail()));
         }
         return user;
     }
@@ -135,7 +135,7 @@ public class UserService {
     public User changeStatus(Long id, UserStatus status) {
         User user = getById(id);
         if (user.changeStatus(status)) {
-            eventPublisher.publishEvent(new UserAccessChangedEvent(id));
+            eventPublisher.publishEvent(new UserAccessChangedEvent(id, user.getEmail()));
         }
         return user;
     }
@@ -170,7 +170,7 @@ public class UserService {
             throw new InvalidPasswordException("New password must be different from the current password");
         }
         user.changePassword(passwordEncoder.encode(request.newPassword()));
-        eventPublisher.publishEvent(new UserAccessChangedEvent(id));
+        eventPublisher.publishEvent(new UserAccessChangedEvent(id, user.getEmail()));
     }
 
     @Transactional
@@ -178,7 +178,7 @@ public class UserService {
         User user = getById(id);
         validateCurrentPassword(user, request.currentPassword());
         if (user.changeStatus(UserStatus.WITHDRAWN)) {
-            eventPublisher.publishEvent(new UserAccessChangedEvent(id));
+            eventPublisher.publishEvent(new UserAccessChangedEvent(id, user.getEmail()));
         }
     }
 

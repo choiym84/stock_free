@@ -18,5 +18,19 @@ services:
       timeout: 5s
       retries: 20
       start_period: 20s
+  redis:
+    image: redis:8-alpine
+    profiles: ["redis-session"]
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 volumes:
   postgres-data:
+  redis-data:

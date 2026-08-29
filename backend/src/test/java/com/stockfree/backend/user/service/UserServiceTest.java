@@ -114,7 +114,7 @@ class UserServiceTest {
         User result = userService.changeRole(1L, UserRole.ADMIN);
 
         assertThat(result.getRole()).isEqualTo(UserRole.ADMIN);
-        verify(eventPublisher).publishEvent(new UserAccessChangedEvent(1L));
+        verify(eventPublisher).publishEvent(new UserAccessChangedEvent(1L, "user@example.com"));
     }
 
     @Test

@@ -5,6 +5,10 @@
 The user API uses a server-side session stored in the `JSESSIONID` cookie. See
 [`docs/user-session-auth.md`](docs/user-session-auth.md) for the endpoints and browser CSRF flow.
 
+New accounts require email verification by default. Development prints verification/reset links to
+the application log. Set `ACCOUNT_NOTIFICATION_DELIVERY=smtp` and the `MAIL_*` variables to deliver
+real mail.
+
 ## Local PostgreSQL with Docker
 
 The local database is defined in `compose.yaml`. Docker Compose gives every developer the same
@@ -108,6 +112,31 @@ src/main/resources/db/migration
 
 The initial PostgreSQL schema is created by `V1__create_stock_free_schema.sql`. Once a migration has
 been applied, do not edit it. Add a new version such as `V2__add_market_calendar.sql` instead.
+
+This feature branch intentionally rewrites the not-yet-released V2 migration so it can upgrade a V1
+database containing users. If an older revision of V2 was already applied to a local development
+volume, recreate that disposable volume once before running this branch:
+
+```bash
+docker compose down -v
+./gradlew bootRun
+```
+
+Do not use that destructive reset procedure for a shared or production database.
+
+### Redis-backed sessions for multiple servers
+
+The default profile keeps sessions in the servlet container and does not require Redis. For multiple
+application instances, enable the indexed Redis session profile so role, status, password, and
+withdrawal changes can revoke a user's sessions across every instance:
+
+```bash
+COMPOSE_PROFILES=redis-session docker compose up -d
+SPRING_PROFILES_ACTIVE=redis-session ./gradlew bootRun
+```
+
+Production Redis connection settings are `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, and
+`REDIS_SSL`. Redis session keys use the isolated `stock-free:session` namespace.
 
 ### Development database versus test database
 

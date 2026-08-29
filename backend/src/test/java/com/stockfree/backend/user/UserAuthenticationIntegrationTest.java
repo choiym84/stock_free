@@ -98,6 +98,10 @@ class UserAuthenticationIntegrationTest {
         AuthenticatedUser sessionUser = (AuthenticatedUser) securityContext.getAuthentication().getPrincipal();
         assertThat(sessionUser.getPassword()).isNull();
 
+        mockMvc.perform(get("/api/v1/users/me/authentication-events").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].outcome").value("SUCCEEDED"));
+
         mockMvc.perform(get("/api/v1/users/me").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.email").value("user@example.com"))

@@ -41,7 +41,11 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableConfigurationProperties({SecurityProperties.class, NotificationProperties.class})
+@EnableConfigurationProperties({
+        SecurityProperties.class,
+        NotificationProperties.class,
+        RedisSessionProperties.class
+})
 public class SecurityConfig {
 
     @Bean

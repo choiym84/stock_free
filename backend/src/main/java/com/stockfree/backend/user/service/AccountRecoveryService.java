@@ -89,7 +89,7 @@ public class AccountRecoveryService {
             user.changeStatus(UserStatus.ACTIVE);
         }
         token.consume(now);
-        eventPublisher.publishEvent(new UserAccessChangedEvent(user.getId()));
+        eventPublisher.publishEvent(new UserAccessChangedEvent(user.getId(), user.getEmail()));
     }
 
     private void issue(User user, AccountTokenType type, Duration ttl) {

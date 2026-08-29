@@ -1,7 +1,10 @@
 package com.stockfree.backend.user.controller;
 
 import com.stockfree.backend.common.api.ApiResponse;
+import com.stockfree.backend.common.api.PageResponse;
 import com.stockfree.backend.security.AuthenticatedUser;
+import com.stockfree.backend.security.AuthenticationHistoryService;
+import com.stockfree.backend.user.dto.AuthenticationEventResponse;
 import com.stockfree.backend.user.dto.UserResponse;
 import com.stockfree.backend.user.dto.UpdateNicknameRequest;
 import com.stockfree.backend.user.dto.ChangePasswordRequest;
@@ -10,6 +13,7 @@ import com.stockfree.backend.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,10 +29,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final AuthenticationHistoryService authenticationHistoryService;
 
     @GetMapping("/me")
     public ApiResponse<UserResponse> me(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         return ApiResponse.ok(UserResponse.from(userService.getById(authenticatedUser.id())));
+    }
+
+    @GetMapping("/me/authentication-events")
+    public ApiResponse<PageResponse<AuthenticationEventResponse>> authenticationEvents(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            Pageable pageable
+    ) {
+        return ApiResponse.ok(PageResponse.from(
+                authenticationHistoryService.getForEmail(authenticatedUser.email(), pageable)
+                        .map(AuthenticationEventResponse::from)
+        ));
     }
 
     @PatchMapping("/me/nickname")
