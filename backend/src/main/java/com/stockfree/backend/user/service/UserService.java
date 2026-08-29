@@ -2,7 +2,11 @@ package com.stockfree.backend.user.service;
 
 import com.stockfree.backend.common.exception.DuplicateUserAttributeException;
 import com.stockfree.backend.common.exception.InvalidPasswordException;
+import com.stockfree.backend.common.exception.LoginRateLimitExceededException;
 import com.stockfree.backend.common.exception.UserNotFoundException;
+import com.stockfree.backend.security.AuthenticatedUser;
+import com.stockfree.backend.security.AuthenticationAttemptService;
+import com.stockfree.backend.security.AuthenticationClient;
 import com.stockfree.backend.user.domain.User;
 import com.stockfree.backend.user.domain.UserRole;
 import com.stockfree.backend.user.domain.UserStatus;
@@ -13,14 +17,15 @@ import com.stockfree.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import java.nio.charset.StandardCharsets;
 
@@ -35,6 +40,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuthenticationAttemptService authenticationAttemptService;
 
     @Transactional
     public User register(RegisterUserRequest request) {
@@ -59,15 +65,31 @@ public class UserService {
         }
     }
 
-    public Authentication authenticate(LoginRequest request) {
+    public Authentication authenticate(LoginRequest request, AuthenticationClient client) {
+        String email = User.normalizeEmail(request.email());
+        try {
+            authenticationAttemptService.assertAllowed(email, client);
+        } catch (LoginRateLimitExceededException exception) {
+            authenticationAttemptService.recordRateLimited(email, client);
+            throw exception;
+        }
         if (request.password().getBytes(StandardCharsets.UTF_8).length > BCRYPT_MAX_PASSWORD_BYTES) {
+            authenticationAttemptService.recordFailure(email, client);
             throw new BadCredentialsException("Invalid credentials");
         }
         var authenticationToken = UsernamePasswordAuthenticationToken.unauthenticated(
-                User.normalizeEmail(request.email()),
+                email,
                 request.password()
         );
-        return authenticationManager.authenticate(authenticationToken);
+        try {
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
+            AuthenticatedUser principal = (AuthenticatedUser) authentication.getPrincipal();
+            authenticationAttemptService.recordSuccess(principal.id(), email, client);
+            return authentication;
+        } catch (AuthenticationException exception) {
+            authenticationAttemptService.recordFailure(email, client);
+            throw exception;
+        }
     }
 
     public User getById(Long id) {

@@ -2,6 +2,7 @@ package com.stockfree.backend.user.controller;
 
 import com.stockfree.backend.common.api.ApiResponse;
 import com.stockfree.backend.security.AuthenticatedUser;
+import com.stockfree.backend.security.AuthenticationClient;
 import com.stockfree.backend.security.SessionAuthenticationHandler;
 import com.stockfree.backend.user.dto.CsrfTokenResponse;
 import com.stockfree.backend.user.dto.LoginRequest;
@@ -49,7 +50,10 @@ public class AuthController {
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        Authentication authentication = userService.authenticate(loginRequest);
+        Authentication authentication = userService.authenticate(
+                loginRequest,
+                new AuthenticationClient(request.getRemoteAddr(), request.getHeader("User-Agent"))
+        );
         sessionAuthenticationHandler.login(authentication, request, response);
         return ApiResponse.ok(UserResponse.from((AuthenticatedUser) authentication.getPrincipal()));
     }

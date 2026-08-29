@@ -52,6 +52,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("INVALID_CREDENTIALS", "Email or password is incorrect"));
     }
 
+    @ExceptionHandler(LoginRateLimitExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleLoginRateLimit(LoginRateLimitExceededException exception) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", Long.toString(exception.getRetryAfter().toSeconds()))
+                .body(ApiResponse.error("LOGIN_RATE_LIMITED", exception.getMessage()));
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleUserNotFound(UserNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)

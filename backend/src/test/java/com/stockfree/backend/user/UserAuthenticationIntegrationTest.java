@@ -2,6 +2,8 @@ package com.stockfree.backend.user;
 
 import com.stockfree.backend.TestcontainersConfiguration;
 import com.stockfree.backend.security.AuthenticatedUser;
+import com.stockfree.backend.security.AuthenticationEventRepository;
+import com.stockfree.backend.security.AuthenticationOutcome;
 import com.stockfree.backend.user.domain.UserStatus;
 import com.stockfree.backend.user.repository.UserRepository;
 import com.stockfree.backend.user.service.UserService;
@@ -43,8 +45,12 @@ class UserAuthenticationIntegrationTest {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AuthenticationEventRepository authenticationEventRepository;
+
     @BeforeEach
     void deleteUsers() {
+        authenticationEventRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -156,6 +162,52 @@ class UserAuthenticationIntegrationTest {
                 .andReturn();
 
         assertThat(result.getRequest().getSession(false)).isNull();
+        assertThat(authenticationEventRepository.findAll())
+                .singleElement()
+                .extracting(event -> event.getOutcome())
+                .isEqualTo(AuthenticationOutcome.FAILED);
+    }
+
+    @Test
+    void login_afterEmailFailureLimit_shouldReturn429WithRetryAfter() throws Exception {
+        CsrfCredentials csrf = issueCsrf();
+        mockMvc.perform(withCsrf(post("/api/v1/auth/register"), csrf)
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "limited@example.com",
+                                  "nickname": "limited_user",
+                                  "password": "password123"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        String failedLogin = """
+                {
+                  "email": "limited@example.com",
+                  "password": "wrong-password"
+                }
+                """;
+        for (int attempt = 0; attempt < 5; attempt++) {
+            mockMvc.perform(withCsrf(post("/api/v1/auth/login"), csrf)
+                            .contentType(APPLICATION_JSON)
+                            .content(failedLogin))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        mockMvc.perform(withCsrf(post("/api/v1/auth/login"), csrf)
+                        .contentType(APPLICATION_JSON)
+                        .content(failedLogin))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().string("Retry-After", "900"))
+                .andExpect(jsonPath("$.error.code").value("LOGIN_RATE_LIMITED"));
+
+        assertThat(authenticationEventRepository.findAll())
+                .filteredOn(event -> event.getOutcome() == AuthenticationOutcome.FAILED)
+                .hasSize(5);
+        assertThat(authenticationEventRepository.findAll())
+                .filteredOn(event -> event.getOutcome() == AuthenticationOutcome.RATE_LIMITED)
+                .hasSize(1);
     }
 
     @Test
