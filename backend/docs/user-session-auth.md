@@ -25,11 +25,10 @@
 Responses with bodies use the common `ApiResponse` envelope. Password hashes and raw account tokens
 are never returned. Numeric IDs are exposed only to administrators for user-management operations.
 
-New registrations have `emailVerified=false`. With the default
-`REQUIRE_EMAIL_VERIFICATION=true`, login remains disabled until the email token is confirmed.
-Verification and reset tokens expire, can be used once, and are stored in PostgreSQL only as SHA-256
-hashes. Password reset requests deliberately return the same `202 Accepted` for known and unknown
-email addresses.
+New registrations have `emailVerified=true` and can log in immediately. The email-verification
+endpoints remain available for a future reactivation, while password reset tokens expire, can be
+used once, and are stored in PostgreSQL only as SHA-256 hashes. Password reset requests deliberately
+return the same `202 Accepted` for known and unknown email addresses.
 
 ## Browser flow
 

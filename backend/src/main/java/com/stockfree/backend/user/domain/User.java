@@ -70,7 +70,7 @@ public class User {
         user.passwordHash = Objects.requireNonNull(passwordHash);
         user.role = UserRole.USER;
         user.status = UserStatus.ACTIVE;
-        user.emailVerified = false;
+        user.emailVerified = true;
         return user;
     }
 

@@ -3,6 +3,14 @@ const authBasePath = '/api/v1/auth'
 
 type CsrfResponse = { headerName: string; token: string }
 type ApiEnvelope<T> = { data?: T; error?: { message?: string; details?: string[] } }
+export type CurrentUser = {
+  email: string
+  nickname: string
+  role: string
+  status: string
+  emailVerified: boolean
+  createdAt: string
+}
 
 function endpoint(path: string) {
   return `${apiBaseUrl}${path}`
@@ -50,4 +58,27 @@ export async function login(email: string, password: string) {
 
 export async function register(email: string, nickname: string, password: string) {
   await postWithCsrf('/register', { email, nickname, password })
+}
+
+export async function getCurrentUser() {
+  const response = await fetch(endpoint('/api/v1/users/me'), {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) throw new Error(await readError(response, '로그인 상태를 확인하지 못했습니다.'))
+  const body = await response.json() as ApiEnvelope<CurrentUser>
+  if (!body.data) throw new Error('사용자 정보를 가져오지 못했습니다.')
+  return body.data
+}
+
+export async function logout() {
+  await postWithCsrf('/logout', undefined)
+}
+
+export async function requestPasswordReset(email: string) {
+  await postWithCsrf('/password-resets', { email })
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  await postWithCsrf('/password-resets/confirm', { token, newPassword })
 }

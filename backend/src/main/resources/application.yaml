@@ -37,10 +37,14 @@ app:
       max-failures-per-email: ${LOGIN_MAX_FAILURES_PER_EMAIL:5}
       max-failures-per-ip: ${LOGIN_MAX_FAILURES_PER_IP:20}
       window: ${LOGIN_FAILURE_WINDOW:15m}
-    require-email-verification: ${REQUIRE_EMAIL_VERIFICATION:true}
+    require-email-verification: ${REQUIRE_EMAIL_VERIFICATION:false}
     account-tokens:
       email-verification-ttl: ${EMAIL_VERIFICATION_TTL:24h}
       password-reset-ttl: ${PASSWORD_RESET_TTL:30m}
+    password-reset-throttle:
+      max-requests-per-email: ${PASSWORD_RESET_MAX_REQUESTS_PER_EMAIL:3}
+      max-requests-per-ip: ${PASSWORD_RESET_MAX_REQUESTS_PER_IP:20}
+      window: ${PASSWORD_RESET_REQUEST_WINDOW:15m}
   notification:
     delivery: ${ACCOUNT_NOTIFICATION_DELIVERY:console}
     base-url: ${FRONTEND_BASE_URL:http://localhost:5173}

@@ -10,7 +10,8 @@ public record SecurityProperties(
         List<String> allowedOrigins,
         LoginThrottle loginThrottle,
         boolean requireEmailVerification,
-        AccountTokens accountTokens
+        AccountTokens accountTokens,
+        PasswordResetThrottle passwordResetThrottle
 ) {
 
     public SecurityProperties {
@@ -27,6 +28,13 @@ public record SecurityProperties(
     public record AccountTokens(
             Duration emailVerificationTtl,
             Duration passwordResetTtl
+    ) {
+    }
+
+    public record PasswordResetThrottle(
+            int maxRequestsPerEmail,
+            int maxRequestsPerIp,
+            Duration window
     ) {
     }
 }

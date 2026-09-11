@@ -35,4 +35,24 @@ button:disabled { cursor: wait; opacity: .6; }
 .signup { margin: 30px 0 0; color: #849089; text-align: center; font-size: 12px; }
 .security-note { margin: 64px 0 0; color: #a1aaa3; text-align: center; font: 10px 'DM Mono', monospace; }
 .security-note span { color: #65826e; margin-right: 7px; }
+.dashboard-page { min-height: 100vh; background: #f7f8f6; color: #18201d; }
+.dashboard-header { display: flex; align-items: center; justify-content: space-between; padding: 28px 6vw; border-bottom: 1px solid #e2e7e2; }
+.dashboard-logo { color: #173a2e; font: 700 16px 'DM Mono', monospace; letter-spacing: .08em; text-decoration: none; }
+.dashboard-logo span { margin-left: 8px; font-size: 10px; font-weight: 500; }
+.dashboard-account { display: flex; align-items: center; gap: 18px; color: #53715d; font-size: 12px; }
+.logout-button { width: auto; height: 34px; margin: 0; padding: 0 14px; background: transparent; border: 1px solid #b9c7bb; color: #355943; font-size: 11px; }
+.logout-button:hover:not(:disabled) { background: #e8efe8; }
+.dashboard-content { width: min(1100px, 88vw); margin: 0 auto; padding: 72px 0; }
+.dashboard-content h1 { color: #173a2e; font-size: clamp(32px, 5vw, 58px); }
+.dashboard-subtitle { margin: 16px 0 48px; color: #849089; font-size: 14px; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.dashboard-card { min-height: 170px; padding: 26px; border: 1px solid #dfe7df; border-radius: 6px; background: #fff; display: flex; flex-direction: column; justify-content: space-between; }
+.dashboard-card-primary { background: #173a2e; color: #f2f4ed; border-color: #173a2e; }
+.dashboard-card strong { font-size: 20px; }
+.dashboard-card span { color: #849089; font-size: 12px; }
+.dashboard-card-primary span { color: #b9d0bd; }
+.card-label { margin: 0; color: #87a38d; font: 500 10px 'DM Mono', monospace; letter-spacing: .14em; }
+.dashboard-card-wide { grid-column: 1 / -1; min-height: 140px; }
+.dashboard-loading { padding-top: 30vh; text-align: center; color: #849089; }
+@media (max-width: 760px) { .dashboard-header { padding: 22px 28px; } .dashboard-logo span { display: none; } .dashboard-content { width: auto; padding: 52px 28px; } .dashboard-grid { grid-template-columns: 1fr; } .dashboard-card-wide { grid-column: auto; } }
 @media (max-width: 760px) { .login-layout { display: block; } .brand-panel { min-height: 260px; padding: 32px 28px; } .brand-panel .brand-mark, .brand-panel .brand-copy, .market-note { display: none; } .brand-panel::after { width: 300px; height: 300px; right: -160px; bottom: -190px; } .brand-panel h1 { font-size: 38px; } .form-panel { padding: 48px 28px; } .mobile-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 54px; color: #173a2e; font: 500 12px 'DM Mono', monospace; letter-spacing: .1em; } .brand-mark.small { width: 30px; height: 30px; margin: 0; font-size: 9px; } .security-note { margin-top: 44px; } }

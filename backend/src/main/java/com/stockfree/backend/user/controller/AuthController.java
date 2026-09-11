@@ -91,9 +91,10 @@ public class AuthController {
 
     @PostMapping("/password-resets")
     public ResponseEntity<Void> requestPasswordReset(
-            @Valid @RequestBody EmailAddressRequest request
+            @Valid @RequestBody EmailAddressRequest request,
+            HttpServletRequest httpRequest
     ) {
-        accountRecoveryService.requestPasswordReset(request.email());
+        accountRecoveryService.requestPasswordReset(request.email(), httpRequest.getRemoteAddr());
         return ResponseEntity.accepted().build();
     }
 

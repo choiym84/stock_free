@@ -48,7 +48,6 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthenticationAttemptService authenticationAttemptService;
-    private final AccountRecoveryService accountRecoveryService;
 
     @Transactional
     public User register(RegisterUserRequest request) {
@@ -68,7 +67,6 @@ public class UserService {
         User user = User.register(email, nickname, passwordEncoder.encode(request.password()));
         try {
             User savedUser = userRepository.saveAndFlush(user);
-            accountRecoveryService.issueEmailVerification(savedUser);
             return savedUser;
         } catch (DataIntegrityViolationException exception) {
             throw translateUserConstraintViolation(exception);

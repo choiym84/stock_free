@@ -10,6 +10,13 @@ npm install
 npm run dev
 ```
 
+E2E 테스트는 Playwright Chromium이 필요합니다.
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
 개발 중 `/api` 요청은 `http://localhost:8080` 백엔드로 프록시됩니다. 배포 시에는
 `.env`의 `VITE_API_BASE_URL`에 백엔드 origin을 지정하세요.
 
@@ -20,10 +27,12 @@ npm run dev
 - `POST /api/v1/auth/login`: `{ "email": string, "password": string }`를 JSON으로 전송
 - 두 요청 모두 세션 유지를 위해 `credentials: include`를 사용
 - 상태 변경 요청에는 CSRF 응답의 `headerName`과 `token`을 사용
-- 회원가입 후 이메일 인증 링크를 확인해야 로그인할 수 있습니다.
+- 회원가입 후 바로 로그인할 수 있습니다.
 
 로그인 성공 후 `/dashboard`로 이동합니다. 백엔드의 실제 엔드포인트가 다르면
 `src/lib/authApi.ts`의 `authBasePath`와 `VITE_API_BASE_URL`을 배포 환경에 맞게 설정합니다.
+
+비밀번호 찾기는 `/forgot-password`, 재설정 링크는 `/reset-password?token=...`에서 처리합니다.
 
 ## 차트 데이터 연결
 

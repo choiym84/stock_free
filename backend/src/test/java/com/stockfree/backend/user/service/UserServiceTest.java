@@ -41,9 +41,6 @@ class UserServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private AccountRecoveryService accountRecoveryService;
-
     @InjectMocks
     private UserService userService;
 
@@ -59,7 +56,6 @@ class UserServiceTest {
         assertThat(result.getNickname()).isEqualTo("investor_1");
         assertThat(result.getPasswordHash()).isEqualTo("encoded-password");
         verify(userRepository).saveAndFlush(any(User.class));
-        verify(accountRecoveryService).issueEmailVerification(result);
     }
 
     @Test

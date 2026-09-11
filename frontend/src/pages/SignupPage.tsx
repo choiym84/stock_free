@@ -46,7 +46,7 @@ export function SignupPage() {
             <>
               <p className="eyebrow">WELCOME TO STOCK FREE</p>
               <h2>가입이 완료됐어요</h2>
-              <p className="form-subtitle">이메일로 전송된 인증 링크를 확인한 뒤 로그인해 주세요.</p>
+              <p className="form-subtitle">이제 바로 로그인해서 오늘의 시장을 확인할 수 있어요.</p>
               <a className="primary-link" href="/">로그인 페이지로 돌아가기 <span aria-hidden="true">→</span></a>
             </>
           ) : (

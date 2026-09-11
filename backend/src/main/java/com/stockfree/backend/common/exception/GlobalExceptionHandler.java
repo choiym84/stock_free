@@ -73,6 +73,15 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("LOGIN_RATE_LIMITED", exception.getMessage()));
     }
 
+    @ExceptionHandler(PasswordResetRateLimitExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePasswordResetRateLimit(
+            PasswordResetRateLimitExceededException exception
+    ) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", Long.toString(exception.getRetryAfter().toSeconds()))
+                .body(ApiResponse.error("PASSWORD_RESET_RATE_LIMITED", exception.getMessage()));
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleUserNotFound(UserNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)

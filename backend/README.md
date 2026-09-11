@@ -5,8 +5,8 @@
 The user API uses a server-side session stored in the `JSESSIONID` cookie. See
 [`docs/user-session-auth.md`](docs/user-session-auth.md) for the endpoints and browser CSRF flow.
 
-New accounts require email verification by default. Development prints verification/reset links to
-the application log. Set `ACCOUNT_NOTIFICATION_DELIVERY=smtp` and the `MAIL_*` variables to deliver
+New accounts can log in immediately. Password reset notifications are printed to the application
+log in development. Set `ACCOUNT_NOTIFICATION_DELIVERY=smtp` and the `MAIL_*` variables to deliver
 real mail.
 
 ## Local PostgreSQL with Docker

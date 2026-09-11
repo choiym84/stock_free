@@ -4,6 +4,7 @@ import com.stockfree.backend.common.exception.InvalidAccountTokenException;
 import com.stockfree.backend.common.exception.InvalidPasswordException;
 import com.stockfree.backend.config.SecurityProperties;
 import com.stockfree.backend.security.TokenGenerator;
+import com.stockfree.backend.security.PasswordResetAttemptService;
 import com.stockfree.backend.user.domain.AccountToken;
 import com.stockfree.backend.user.domain.AccountTokenType;
 import com.stockfree.backend.user.domain.User;
@@ -37,6 +38,7 @@ public class AccountRecoveryService {
     private final SecurityProperties securityProperties;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
+    private final PasswordResetAttemptService passwordResetAttemptService;
 
     @Transactional
     public void issueEmailVerification(User user) {
@@ -64,8 +66,10 @@ public class AccountRecoveryService {
     }
 
     @Transactional
-    public void requestPasswordReset(String email) {
-        userRepository.findByEmail(User.normalizeEmail(email))
+    public void requestPasswordReset(String email, String ipAddress) {
+        String normalizedEmail = User.normalizeEmail(email);
+        passwordResetAttemptService.assertAllowedAndRecord(normalizedEmail, ipAddress);
+        userRepository.findByEmail(normalizedEmail)
                 .filter(user -> user.getStatus() != UserStatus.WITHDRAWN)
                 .ifPresent(user -> issue(
                         user,
