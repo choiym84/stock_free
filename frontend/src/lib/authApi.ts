@@ -1,6 +1,8 @@
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
+const authBasePath = '/api/v1/auth'
 
-type CsrfResponse = { token?: string }
+type CsrfResponse = { headerName: string; token: string }
+type ApiEnvelope<T> = { data?: T; error?: { message?: string; details?: string[] } }
 
 function endpoint(path: string) {
   return `${apiBaseUrl}${path}`
@@ -8,37 +10,44 @@ function endpoint(path: string) {
 
 async function readError(response: Response, fallback: string) {
   try {
-    const body = await response.json() as { message?: string; detail?: string }
-    return body.message ?? body.detail ?? fallback
+    const body = await response.json() as ApiEnvelope<unknown> & { message?: string; detail?: string }
+    return body.error?.message ?? body.error?.details?.join(', ') ?? body.message ?? body.detail ?? fallback
   } catch {
     return fallback
   }
 }
 
-export async function login(email: string, password: string) {
-  const csrfResponse = await fetch(endpoint('/api/auth/csrf'), {
+async function csrfToken() {
+  const response = await fetch(endpoint(`${authBasePath}/csrf`), {
     credentials: 'include',
     headers: { Accept: 'application/json' },
   })
-  if (!csrfResponse.ok) throw new Error(await readError(csrfResponse, '보안 토큰을 가져오지 못했습니다.'))
+  if (!response.ok) throw new Error(await readError(response, '보안 토큰을 가져오지 못했습니다.'))
 
-  const csrf = await csrfResponse.json() as CsrfResponse
-  const token = csrf.token ?? getCookie('XSRF-TOKEN')
-  if (!token) throw new Error('보안 토큰이 없습니다. 잠시 후 다시 시도해 주세요.')
+  const body = await response.json() as ApiEnvelope<CsrfResponse>
+  if (!body.data?.token) throw new Error('보안 토큰이 없습니다. 잠시 후 다시 시도해 주세요.')
+  return body.data
+}
 
-  const response = await fetch(endpoint('/api/auth/login'), {
+async function postWithCsrf(path: string, payload: unknown) {
+  const csrf = await csrfToken()
+  const response = await fetch(endpoint(`${authBasePath}${path}`), {
     method: 'POST',
     credentials: 'include',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'X-XSRF-TOKEN': decodeURIComponent(token),
+      [csrf.headerName]: csrf.token,
     },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify(payload),
   })
-  if (!response.ok) throw new Error(await readError(response, '이메일 또는 비밀번호를 확인해 주세요.'))
+  if (!response.ok) throw new Error(await readError(response, '요청을 처리하지 못했습니다.'))
 }
 
-function getCookie(name: string) {
-  return document.cookie.split('; ').find((part) => part.startsWith(`${name}=`))?.split('=').slice(1).join('=')
+export async function login(email: string, password: string) {
+  await postWithCsrf('/login', { email, password })
+}
+
+export async function register(email: string, nickname: string, password: string) {
+  await postWithCsrf('/register', { email, nickname, password })
 }

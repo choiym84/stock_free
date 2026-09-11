@@ -29,6 +29,8 @@ input:focus { border-color: #597963; box-shadow: 0 0 0 3px #59796318; }
 button { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 52px; margin-top: 8px; padding: 0 18px; border: 0; border-radius: 3px; background: #173a2e; color: #fff; cursor: pointer; font: 700 13px Manrope, sans-serif; }
 button:hover:not(:disabled) { background: #255441; }
 button:disabled { cursor: wait; opacity: .6; }
+.primary-link { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 52px; padding: 0 18px; border-radius: 3px; background: #173a2e; color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; }
+.primary-link:hover { background: #255441; }
 .error { margin: -8px 0 15px; color: #b34e42; font-size: 12px; }
 .signup { margin: 30px 0 0; color: #849089; text-align: center; font-size: 12px; }
 .security-note { margin: 64px 0 0; color: #a1aaa3; text-align: center; font: 10px 'DM Mono', monospace; }
