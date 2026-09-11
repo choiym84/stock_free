@@ -73,19 +73,23 @@ Stock ── 1:N ── Holding / Order / StockMinuteCandle
 | Test | JUnit 5, Spring Test, Testcontainers, REST Docs |
 | Local | Docker Compose, Gradle Wrapper |
 
-### PostgreSQL을 선택한 이유
+### 왜 PostgreSQL인가?
 
-Stock Free는 단순 조회 서비스가 아니라 주문·계좌·보유 수량의 정합성이 핵심인 서비스입니다.
-PostgreSQL을 선택한 이유는 다음과 같습니다.
+MySQL도 트랜잭션, 외래 키, 유일 제약조건을 제공하므로 단순히 “PostgreSQL이 더 강력해서”
+선택한 것은 아닙니다. Stock Free의 주문·시세 요구사항과 운영 계획을 비교해 PostgreSQL을
+선택했습니다.
 
-- 트랜잭션, 외래 키, 유일 제약조건, CHECK 제약조건을 통해 금융 도메인의 불변식을 DB에서도 보장할 수 있음
-- NUMERIC과 TIMESTAMPTZ를 지원해 금액 계산과 시각 데이터를 정밀하게 저장할 수 있음
-- 복합 기본 키와 인덱스를 활용해 종목·분봉, 계좌·주문 같은 조회 패턴을 명확하게 설계할 수 있음
-- PostgreSQL 17을 Docker와 Testcontainers에서 동일하게 실행해 개발·테스트 환경 차이를 줄일 수 있음
-- 향후 분봉 데이터 증가 시 파티셔닝, 전문 인덱스, 통계 기능 등으로 확장하기 쉬움
+| 비교 기준 | PostgreSQL을 선택한 이유 |
+| --- | --- |
+| MySQL | 두 DB 모두 충분히 사용할 수 있지만, PostgreSQL의 `TIMESTAMPTZ`와 일관된 시간대 처리 방식이 KRX 시세 시각·서버 수신 시각을 함께 저장하는 요구에 더 명확함 |
+| MySQL | PostgreSQL의 표준 SQL 지원, 복합 타입·인덱스·제약조건 표현력이 도메인 규칙을 DB 스키마에 드러내기 좋음 |
+| H2 | 테스트 DB와 운영 DB의 SQL·잠금·타입 차이로 발생하는 문제를 줄이기 위해 운영과 같은 PostgreSQL을 Testcontainers에서도 사용 |
+| SQLite | 단일 파일 기반이라 로컬 실험에는 편하지만, 주문 동시 처리와 서버용 트랜잭션 검증을 실제 운영 DB와 같은 방식으로 테스트하기 어려움 |
+| 확장성 | 분봉 데이터가 증가하면 PostgreSQL의 파티셔닝, 인덱스, 통계 기능을 활용해 조회 구조를 확장할 수 있음 |
 
-특히 잔액과 보유 수량을 애플리케이션 검증만으로 신뢰하지 않고, DB 제약조건과 트랜잭션으로
-한 번 더 보호하는 것이 이 프로젝트에서 PostgreSQL을 사용하는 핵심 이유입니다.
+결론적으로 이 프로젝트에서는 계좌·보유 수량의 정합성을 DB 제약조건으로 표현하고, 운영과
+테스트의 DB를 일치시키는 효과가 선택의 핵심입니다. 트래픽이 작고 팀의 기존 운영 경험이
+MySQL에 집중되어 있었다면 MySQL도 합리적인 선택입니다.
 
 ## CS 관점의 설계 포인트
 
