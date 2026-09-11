@@ -140,6 +140,14 @@ container after the test process exits, while Docker may cache the PostgreSQL im
 ### Troubleshooting
 
 Check Docker and service status:
+### PostgreSQL을 사용하는 이유
+
+이 프로젝트의 핵심은 주문 처리 중 계좌 잔액과 보유 수량이 깨지지 않는 것입니다. PostgreSQL은
+트랜잭션, 외래 키, 유일 제약조건, CHECK 제약조건을 제공하므로 애플리케이션 로직뿐 아니라
+데이터베이스에서도 정합성 규칙을 검증할 수 있습니다. 또한 금액에는 NUMERIC, 시각에는
+TIMESTAMPTZ를 사용할 수 있고, PostgreSQL 17을 Docker와 Testcontainers에서 동일하게 실행해
+개발 환경과 테스트 환경의 차이를 줄일 수 있습니다.
+
 ## 문제 해결
 
 ```bash

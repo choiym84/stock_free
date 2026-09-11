@@ -73,6 +73,20 @@ Stock ── 1:N ── Holding / Order / StockMinuteCandle
 | Test | JUnit 5, Spring Test, Testcontainers, REST Docs |
 | Local | Docker Compose, Gradle Wrapper |
 
+### PostgreSQL을 선택한 이유
+
+Stock Free는 단순 조회 서비스가 아니라 주문·계좌·보유 수량의 정합성이 핵심인 서비스입니다.
+PostgreSQL을 선택한 이유는 다음과 같습니다.
+
+- 트랜잭션, 외래 키, 유일 제약조건, CHECK 제약조건을 통해 금융 도메인의 불변식을 DB에서도 보장할 수 있음
+- NUMERIC과 TIMESTAMPTZ를 지원해 금액 계산과 시각 데이터를 정밀하게 저장할 수 있음
+- 복합 기본 키와 인덱스를 활용해 종목·분봉, 계좌·주문 같은 조회 패턴을 명확하게 설계할 수 있음
+- PostgreSQL 17을 Docker와 Testcontainers에서 동일하게 실행해 개발·테스트 환경 차이를 줄일 수 있음
+- 향후 분봉 데이터 증가 시 파티셔닝, 전문 인덱스, 통계 기능 등으로 확장하기 쉬움
+
+특히 잔액과 보유 수량을 애플리케이션 검증만으로 신뢰하지 않고, DB 제약조건과 트랜잭션으로
+한 번 더 보호하는 것이 이 프로젝트에서 PostgreSQL을 사용하는 핵심 이유입니다.
+
 ## CS 관점의 설계 포인트
 
 ### 트랜잭션과 원자성
