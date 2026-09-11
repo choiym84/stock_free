@@ -140,13 +140,18 @@ container after the test process exits, while Docker may cache the PostgreSQL im
 ### Troubleshooting
 
 Check Docker and service status:
-### PostgreSQL을 사용하는 이유
+### PostgreSQL을 선택한 이유
 
-이 프로젝트의 핵심은 주문 처리 중 계좌 잔액과 보유 수량이 깨지지 않는 것입니다. PostgreSQL은
-트랜잭션, 외래 키, 유일 제약조건, CHECK 제약조건을 제공하므로 애플리케이션 로직뿐 아니라
-데이터베이스에서도 정합성 규칙을 검증할 수 있습니다. 또한 금액에는 NUMERIC, 시각에는
-TIMESTAMPTZ를 사용할 수 있고, PostgreSQL 17을 Docker와 Testcontainers에서 동일하게 실행해
-개발 환경과 테스트 환경의 차이를 줄일 수 있습니다.
+MySQL도 트랜잭션과 외래 키를 지원하므로 기능적으로 불가능해서 배제한 것은 아닙니다. 이
+프로젝트에서는 KRX 시세의 시간대가 있는 시각을 다루기 위해 PostgreSQL의 TIMESTAMPTZ를
+사용하고, 운영 PostgreSQL 17과 동일한 DB를 Testcontainers에서도 실행해 H2를 사용할 때의
+SQL·잠금·타입 차이를 줄였습니다. SQLite는 로컬 실험에는 적합하지만 주문 동시 처리와 서버용
+트랜잭션 검증에는 운영 DB와의 차이가 더 큽니다.
+
+또한 계좌 잔액·보유 수량의 음수 방지, 복합 키, 유일성 같은 규칙을 PostgreSQL의 제약조건과
+인덱스로 스키마에 명시하기 쉽고, 향후 분봉 데이터가 늘어나면 파티셔닝과 조회 최적화를
+적용할 수 있습니다. 따라서 이 선택은 모든 상황에서 PostgreSQL이 우월해서가 아니라, 현재
+프로젝트의 시간 데이터·정합성·테스트 환경 일치 요구에 맞춘 선택입니다.
 
 ## 문제 해결
 
